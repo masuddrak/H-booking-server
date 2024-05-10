@@ -10,12 +10,12 @@ const app = express()
 // midleware
 app.use(
     cors({
-      origin: [
-        "http://localhost:5173",
-      ],
-      credentials: true,
+        origin: [
+            "http://localhost:5173",
+        ],
+        credentials: true,
     })
-  );
+);
 app.use(express.json())
 app.use(cookieParser())
 const varifyToken = (req, res, next) => {
@@ -46,17 +46,18 @@ async function run() {
     try {
         // Send a ping to confirm a successful connection
         const roomsCollection = client.db("H_Booking").collection("rooms")
-        
+        const booksCollection = client.db("H_Booking").collection("books")
+
         // create jwt token
         app.post("/jwt", async (req, res) => {
             const user = req.body
             const token = jwt.sign(user, process.env.ACCE_TOKEN, { expiresIn: "5h" });
-            res.cookie("token", token, { 
+            res.cookie("token", token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict", 
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             })
-            .send({ success: true })
+                .send({ success: true })
         })
         app.post("/logout", async (req, res) => {
             const user = req.body
@@ -67,19 +68,48 @@ async function run() {
 
         // Rooms route
         // add room
-        app.post("/addroom",async(req,res)=>{
-            const room=req.body
-            const result=await roomsCollection.insertOne(room)
+        app.post("/addroom", async (req, res) => {
+            const room = req.body
+            const result = await roomsCollection.insertOne(room)
             res.send(result)
         })
         // gett all rooms
-        app.get("/allrooms",async(req,res)=>{
-            const result=await roomsCollection.find().toArray()
+        app.get("/allrooms", async (req, res) => {
+            const result = await roomsCollection.find().toArray()
             res.send(result)
         })
-      
-       
-      
+
+        // get single room
+        app.get("/singleroom/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await roomsCollection.findOne(query)
+            res.send(result)
+        })
+        // update room ability
+        app.patch("/availability/:id",async(req,res)=>{
+            const id=req.params.id
+            const Availability=req.body
+            const filter={_id:new ObjectId(id)}
+            const udpadeDoc = {
+                $set: Availability
+            }
+            const result=await roomsCollection.updateOne(filter,udpadeDoc)
+            res.send(result)
+        })
+        //   books rooms------------------
+        app.post("/bookrooms", async (req, res) => {
+            const room=req.body
+            const result=await booksCollection.insertOne(room)
+            res.send(result)
+        })
+        // my book list
+        app.get("/mybookedlist/:email",async(req,res)=>{
+            const email=req.params.email
+            const filter={email}
+            const result=await booksCollection.find(filter).toArray()
+            res.send(result)
+        })
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
 
