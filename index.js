@@ -47,6 +47,7 @@ async function run() {
         // Send a ping to confirm a successful connection
         const roomsCollection = client.db("H_Booking").collection("rooms")
         const booksCollection = client.db("H_Booking").collection("books")
+        const reviewsCollection = client.db("H_Booking").collection("reviews")
 
         // create jwt token
         app.post("/jwt", async (req, res) => {
@@ -129,7 +130,31 @@ async function run() {
             const result = await booksCollection.updateOne(filter, udpadeDoc)
             res.send(result)
         })
+        // add reviews
+        app.post("/reviews", async (req, res) => {
+            const reviewInfo = req.body
 
+            // check if its a duplicate request
+            const query = {
+                email: reviewInfo.reviewEmail,
+                bookId: reviewInfo.reviewRoomID,
+            }
+            const query2 = {
+                reviewEmail: reviewInfo.reviewEmail,
+                reviewRoomID: reviewInfo.reviewRoomID,
+            }
+            const findRoomReview = await booksCollection.findOne(query)
+            const alreadyReviewRoom = await reviewsCollection.findOne(query2)
+
+            if (alreadyReviewRoom) {
+                return res.status(401).send("You already Review")
+            }
+             if (findRoomReview) {
+                const result = await reviewsCollection.insertOne(reviewInfo)
+                res.send(result)
+            }
+
+        })
 
 
 
