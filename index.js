@@ -87,29 +87,61 @@ async function run() {
             res.send(result)
         })
         // update room ability
-        app.patch("/availability/:id",async(req,res)=>{
-            const id=req.params.id
-            const Availability=req.body
-            const filter={_id:new ObjectId(id)}
+        app.patch("/availability/:id", async (req, res) => {
+            const id = req.params.id
+            const Availability = req.body
+            const filter = { _id: new ObjectId(id) }
             const udpadeDoc = {
                 $set: Availability
             }
-            const result=await roomsCollection.updateOne(filter,udpadeDoc)
+            const result = await roomsCollection.updateOne(filter, udpadeDoc)
             res.send(result)
         })
         //   books rooms------------------
         app.post("/bookrooms", async (req, res) => {
-            const room=req.body
-            const result=await booksCollection.insertOne(room)
+            const room = req.body
+            const result = await booksCollection.insertOne(room)
             res.send(result)
         })
         // my book list
-        app.get("/mybookedlist/:email",async(req,res)=>{
-            const email=req.params.email
-            const filter={email}
-            const result=await booksCollection.find(filter).toArray()
+        app.get("/mybookedlist/:email", async (req, res) => {
+            const email = req.params.email
+            const filter = { email }
+            const result = await booksCollection.find(filter).toArray()
             res.send(result)
         })
+        // delete booking
+        app.delete("/deletemybookedlist/:id", async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const result = await booksCollection.deleteOne(filter)
+            res.send(result)
+        })
+
+        // update room date
+        app.patch("/updatedate/:id", async (req, res) => {
+            const id = req.params.id
+            const startDate = req.body
+            const filter = { _id: new ObjectId(id) }
+            const udpadeDoc = {
+                $set: startDate
+            }
+            const result = await booksCollection.updateOne(filter, udpadeDoc)
+            res.send(result)
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
 
