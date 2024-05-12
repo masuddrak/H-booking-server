@@ -134,7 +134,6 @@ async function run() {
         app.post("/reviews", async (req, res) => {
             const reviewInfo = req.body
 
-            // check if its a duplicate request
             const query = {
                 email: reviewInfo.reviewEmail,
                 bookId: reviewInfo.reviewRoomID,
@@ -149,14 +148,24 @@ async function run() {
             if (alreadyReviewRoom) {
                 return res.status(401).send("You already Review")
             }
-             if (findRoomReview) {
+            if (findRoomReview) {
                 const result = await reviewsCollection.insertOne(reviewInfo)
                 res.send(result)
             }
 
         })
-
-
+        // find room basis reviews
+        app.get("/findroomreviewa/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { reviewRoomID: id }
+            const result = await reviewsCollection.find(query).toArray()
+            res.send(result)
+        })
+        // sort decending order reviews
+        app.get("/decendingreviews",async(req,res)=>{
+            const result=await reviewsCollection.find().sort({reviewDate:-1}).toArray()
+            res.send(result)
+        })
 
 
 
