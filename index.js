@@ -76,10 +76,16 @@ async function run() {
         })
         // gett all rooms
         app.get("/allrooms", async (req, res) => {
-            const result = await roomsCollection.find().toArray()
-            res.send(result)
+            const page = parseInt(req.query.page)
+            const size = parseInt(req.query.size)
+            const result = await roomsCollection.find().skip(page * size).limit(size).toArray();
+            res.send(result);
         })
-
+        // total room
+        app.get("/roomcount", async (req, res) => {
+            const count = await roomsCollection.estimatedDocumentCount()
+            res.send({ count })
+        })
         // get single room
         app.get("/singleroom/:id", async (req, res) => {
             const id = req.params.id
@@ -98,6 +104,18 @@ async function run() {
             const result = await roomsCollection.updateOne(filter, udpadeDoc)
             res.send(result)
         })
+        // serch rooms
+        app.get("/searchroom", async (req, res) => {
+            const roomInfo = req.query
+            const minprice = roomInfo.minPrice
+            const maxprice = roomInfo.maxPrice
+            const result = await roomsCollection.find({ Price: { $gte: minprice, $lte: maxprice } }).toArray();
+            res.send(result)
+            console.log(roomInfo)
+        })
+
+
+
         //   books rooms------------------
         app.post("/bookrooms", async (req, res) => {
             const room = req.body
@@ -105,8 +123,11 @@ async function run() {
             res.send(result)
         })
         // my book list
-        app.get("/mybookedlist/:email", async (req, res) => {
+        app.get("/mybookedlist/:email", varifyToken, async (req, res) => {
             const email = req.params.email
+            if (email !== req.user.email) {
+                return res.status(403).send("forbidden...")
+            }
             const filter = { email }
             const result = await booksCollection.find(filter).toArray()
             res.send(result)
@@ -162,8 +183,8 @@ async function run() {
             res.send(result)
         })
         // sort decending order reviews
-        app.get("/decendingreviews",async(req,res)=>{
-            const result=await reviewsCollection.find().sort({reviewDate:-1}).toArray()
+        app.get("/decendingreviews", async (req, res) => {
+            const result = await reviewsCollection.find().sort({ reviewDate: -1 }).toArray()
             res.send(result)
         })
 
