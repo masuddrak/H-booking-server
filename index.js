@@ -12,6 +12,8 @@ app.use(
     cors({
         origin: [
             "http://localhost:5173",
+            "https://h-booking-96145.web.app",
+            "https://h-booking-96145.firebaseapp.com"
         ],
         credentials: true,
     })
